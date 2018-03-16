@@ -18,15 +18,22 @@ var Numbers = contract(numbers_artifacts);
 var accounts;
 var account;
 var numbersInstance;
+
+//events
 //var nextPlayerEvent;
 var gameOverWithWinEvent;
 var gameOverWithDrawEvent;
 var handOverWithWinEvent;
 var handOverWithDrawEvent;
+var playerJoinedEvent;
+var playerPlayedHandEvent;
 
 var arrEventsFired;
 
 window.App = {
+  //************************
+  //******* start **********
+  //************************
   start: function() {
     var self = this;
 
@@ -51,10 +58,17 @@ window.App = {
 
     });
   },
+  //************************
+  //******* useAccountOne **********
+  //************************
   useAccountOne: function() {
     account = accounts[1];
   },
+  //************************
+  //******* createNewGame **********
+  //************************
   createNewGame: function() {
+
     Numbers.new({from:account, value:web3.toWei(0.005,"ether"), gas:3000000}).then(instance => {
       numbersInstance = instance;
 
@@ -65,7 +79,7 @@ window.App = {
       $("#game-address").text(instance.address);
       $("#waiting").show();
 
-      var playerJoinedEvent = numbersInstance.PlayerJoined();
+      playerJoinedEvent = numbersInstance.PlayerJoined();
 
       playerJoinedEvent.watch(function(error, eventObj) {
         if(!error) {
@@ -76,64 +90,76 @@ window.App = {
         $(".waiting-for-join").show();
         $("#opponent-address").text(eventObj.args.player);
         $("#your-turn").hide();
+        App.setTableClicks();
         playerJoinedEvent.stopWatching();
-
       });
-      App.listenToEvents();
+
+      App.registerEvents();
       console.log(instance);
     }).catch(error => {
       console.error(error);
     })
   },
+  //************************
+  //******* joinGame **********
+  //************************
   joinGame: function() {
     var gameAddress = prompt("Address of the Game");
     if(gameAddress != null) {
       Numbers.at(gameAddress).then(instance => {
         numbersInstance = instance;
 
-        App.listenToEvents();
+        App.registerEvents();
 
         return numbersInstance.joinGame({from:account, value:web3.toWei(0.005, "ether"), gas:3000000});
       }).then(txResult => {
+        console.log(numbersInstance);
+        console.log(txResult);
         $(".in-game").show();
         $(".game-start").hide();
         $("#game-address").text(numbersInstance.address);
         $("#your-turn").hide();
-        numbersInstance.player1.call().then(player1Address => {
-          $("#opponent-address").text(player1Address);
+        numbersInstance.hostPlayerAddr.call().then(senthostPlayerAddr => {
+          $("#opponent-address").text(senthostPlayerAddr);
+        });
+        //print board
+        App.printBoard();
+        App.setTableClicks();
+      }).catch(function(error) {
+        console.error('joinGame Error', error);
         })
-        console.log(txResult);
-      })
     }
   },
-  listenToEvents: function() {
-    gameOverWithWinEvent = numbersInstance.GameOverWithWin();
-    gameOverWithWinEvent.watch(App.gameOver);
-
-    gameOverWithDrawEvent = numbersInstance.GameOverWithDraw();
-    gameOverWithDrawEvent.watch(App.gameOver);
-
-    handOverWithWinEvent = numbersInstance.HandOverWithWin();
-    handOverWithWinEvent.watch(App.handOver);
-
-    handOverWithDrawEvent = numbersInstance.HandOverWithDraw();
-    handOverWithDrawEvent.watch(App.handOver);
-  },/*
-  nextPlayer: function(error, eventObj) {
+  //************************
+  //******* registerPlayHand **********
+  //************************
+  registerPlayHand: function(event) {
+    console.log("registerPlayHand - ",event);
+    //make all cells un clickable while we register this hand
+    App.unsetTableClicks();
+    //empty the cell text
+    $("#board")[0].children[0].children[event.data.x].children[event.data.y].innerHTML == "";
+    numbersInstance.playHand(event.data.y, {from: account}).then(txResult => {
+      console.log("registerPlayHand event",txResult);
+      App.printBoard();
+    });
+  },
+  //************************
+  //******* handPlayedEvent **********
+  //************************
+  handPlayedEvent: function(error, eventObj) {
+    console.log("Hand Played - ", eventObj);
     if(arrEventsFired.indexOf(eventObj.blockNumber) === -1) {
       arrEventsFired.push(eventObj.blockNumber);
       App.printBoard();
-      console.log(eventObj);
-
-      if(eventObj.args.player == account) {
+    if(eventObj.args.player == account) {
         //our turn
-
-      //  Set the On-Click Handler
-
+      //  Set the On-Click Handler for still remaining numbers
         for(var i = 0; i < 3; i++) {
           for(var j = 0; j < 3; j++) {
+            if(i==1) continue; //skip middle row as its not clickable anyway
             if($("#board")[0].children[0].children[i].children[j].innerHTML == "") {
-              $($("#board")[0].children[0].children[i].children[j]).off('click').click({x: i, y:j}, App.setStone);
+              $($("#board")[0].children[0].children[i].children[j]).off('click').click({x: i, y:j}, App.registerPlayHand);
             }
           }
         }
@@ -147,7 +173,30 @@ window.App = {
       }
 
     }
-  },*/
+  },
+  //************************
+  //******* handOver **********
+  //************************
+handOver: function(err, eventObj) {
+  console.log("Hand Over", eventObj);
+  if(eventObj.event == "HandOverWithWin") {
+    if(eventObj.args.winner == account) {
+      alert("HAND won !");
+    } else {
+      alert("HAND lost");
+    }
+  } else {
+    alert("HAND draw");
+  }
+
+  //TODO..unset click for just clicked cell
+
+    $(".in-game").hide();
+    $(".game-start").show();
+},
+  //************************
+  //******* gameOver **********
+  //************************
   gameOver: function(err, eventObj) {
     console.log("Game Over", eventObj);
     if(eventObj.event == "GameOverWithWin") {
@@ -160,69 +209,83 @@ window.App = {
       alert("That's a draw, oh my... next time you do beat'em!");
     }
 
-    gameOverWithWinEvent.stopWatching();
-    gameOverWithDrawEvent.stopWatching();
-/*
+    App.unRegisterEvents();
+
     for(var i = 0; i < 3; i++) {
       for(var j = 0; j < 3; j++) {
+        if(j==1) continue; //skip middle row as does not display available selections
             $("#board")[0].children[0].children[i].children[j].innerHTML = "";
       }
-    }*/
+    }
 
       $(".in-game").hide();
       $(".game-start").show();
   },
-  handOver: function(err, eventObj) {
-    console.log("Hand Over", eventObj);
-    if(eventObj.event == "HandOverWithWin") {
-      if(eventObj.args.winner == account) {
-        alert("HAND won !");
-      } else {
-        alert("HAND lost");
-      }
-    } else {
-      alert("HAND draw");
-    }
-
-    handOverWithWinEvent.stopWatching();
-    handOverWithDrawEvent.stopWatching();
-/*
-    for(var i = 0; i < 3; i++) {
-      for(var j = 0; j < 3; j++) {
-            $("#board")[0].children[0].children[i].children[j].innerHTML = "";
-      }
-    }
-
-      $(".in-game").hide();
-      $(".game-start").show();*/
-  },/*
-  setStone: function(event) {
-    console.log(event);
-
-    for(var i = 0; i < 3; i++) {
-      for(var j = 0; j < 3; j++) {
-        $($("#board")[0].children[0].children[i].children[j]).prop('onclick',null).off('click');
-      }
-    }
-
-    numbersInstance.setStone(event.data.x, event.data.y, {from: account}).then(txResult => {
-      console.log(txResult);
-      App.printBoard();
-    })
-  },
+  //************************
+  //******* printBoard **********
+  //************************
   printBoard: function() {
-    numbersInstance.getBoard.call().then(board => {
-      for(var i=0; i < board.length; i++) {
-        for(var j=0; j < board[i].length; j++) {
-          if(board[i][j] == account) {
-            $("#board")[0].children[0].children[i].children[j].innerHTML = "X";
-          } else if(board[i][j] != 0) {
-              $("#board")[0].children[0].children[i].children[j].innerHTML = "O";
+  console.log('printboard');
+    numbersInstance.getPlayStatus.call().then((result) => {
+      console.log(result);
+      var hostHand = result[0];
+      var hostCurrentHandPlayed = result[1];
+      var hostWins = result[2];
+      var guestHand = result[3];
+      var guestCurrentHandPlayed = result[4];
+      var guestWins = result[5];
+    });
+  },
+  //************************
+  //******* Util functions **********
+  //************************
+    registerEvents: function() {
+      gameOverWithWinEvent = numbersInstance.GameOverWithWin();
+      gameOverWithWinEvent.watch(App.gameOver);
+
+      gameOverWithDrawEvent = numbersInstance.GameOverWithDraw();
+      gameOverWithDrawEvent.watch(App.gameOver);
+
+      handOverWithWinEvent = numbersInstance.HandOverWithWin();
+      handOverWithWinEvent.watch(App.handOver);
+
+      handOverWithDrawEvent = numbersInstance.HandOverWithDraw();
+      handOverWithDrawEvent.watch(App.handOver);
+
+      playerPlayedHandEvent = numbersInstance.PlayerPlayedHand();
+      playerPlayedHandEvent.watch(App.handPlayedEvent);
+    },
+
+    unRegisterEvents: function() {
+      gameOverWithWinEvent.stopWatching();
+      gameOverWithDrawEvent.stopWatching();
+      handOverWithWinEvent.stopWatching();
+      handOverWithDrawEvent.stopWatching();
+      playerPlayedHandEvent.stopWatching();
+    },
+
+      setTableClicks: function() {
+        console.log("setTableClicks");
+        //make all cells un clickable
+        for(var i = 0; i < 3; i++) {
+          for(var j = 0; j < 5; j++) {
+            if(i==1) continue; //skip middle row as its not clickable anyway
+            if($("#board")[0].children[0].children[i].children[j].innerHTML != "")
+              $($("#board")[0].children[0].children[i].children[j]).off('click').click({x: i, y:j}, App.registerPlayHand);
+          }
+        }
+      },
+
+      unsetTableClicks: function() {
+        console.log("unsetTableClicks");
+        //make all cells un clickable
+        for(var i = 0; i < 3; i++) {
+          for(var j = 0; j < 5; j++) {
+            if(i==1) continue; //skip middle row as its not clickable anyway
+            $($("#board")[0].children[0].children[i].children[j]).prop('onclick',null).off('click');
           }
         }
       }
-    });
-  }*/
 };
 
 window.addEventListener('load', function() {

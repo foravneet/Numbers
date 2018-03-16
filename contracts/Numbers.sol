@@ -16,14 +16,16 @@ contract Numbers {
         uint8 wins;
     }
 
-    Player hostPlayer;
-    Player guestPlayer;
+    Player private hostPlayer;
+    Player private guestPlayer;
+    address public hostPlayerAddr;
 
-    uint timeToReact = 3 minutes;
+    uint constant timeToReact = 3 minutes;
     uint gameValidUntil;
 
 
     event PlayerJoined(address player);
+    event PlayerPlayedHand(address player, uint8 number);
     event GameOverWithWin(address winner);
     event GameOverWithDraw();
     event HandOverWithWin(address winner);
@@ -32,6 +34,7 @@ contract Numbers {
 
     function Numbers() public payable {
         hostPlayer.addr = msg.sender;
+        hostPlayerAddr = msg.sender;
         require(msg.value == gameCost);
         gameValidUntil = now+timeToReact;
     }
@@ -73,6 +76,8 @@ contract Numbers {
 
         currentPlayer.hands[number] = true;//set hand
         currentPlayer.currentHandPlayed = number;
+
+        PlayerPlayedHand(currentPlayer.addr,number);
 
        // board[x][y] = msg.sender;
        // movesCounter++;
