@@ -12,6 +12,18 @@
   text-align: center;
 }
 
+#board td.hover-effect:hover {
+/*background-color: lime!important;*/
+cursor: pointer;
+border-width:2px;
+border-style:dashed;
+}
+
 .in-game{
   display: none;
+}
+
+.mycolor
+{
+  background-color: lime!important;
 }

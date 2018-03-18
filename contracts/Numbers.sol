@@ -8,11 +8,11 @@ contract Numbers {
     uint8 constant maxNumber = 5;
 
     // Structs
+    //TODO break this struct inti public & private area
     struct Player {
         bool[5] hands;
         address addr;
         uint balanceToWithdraw;
-        uint8 currentHandPlayed;// 0 means not played yet, specific number means the current hand played
         uint8 wins;
     }
 
@@ -20,12 +20,17 @@ contract Numbers {
     Player private guestPlayer;
     address public hostPlayerAddr;
 
+    // keeping this outside teh public struct vars as the opponent should not know your hand..
+    // ..before making their choice for hand
+    uint8 private hostPlayer_currentHandPlayed;// 0 means not played yet, specific number means the current hand played
+    uint8 private guestPlayer_currentHandPlayed;
+
     uint constant timeToReact = 3 minutes;
     uint gameValidUntil;
 
 
     event PlayerJoined(address player);
-    event PlayerPlayedHand(address player, uint8 number);
+    event PlayerPlayedHand(address player);
     event GameOverWithWin(address winner);
     event GameOverWithDraw();
     event HandOverWithWin(address winner);
@@ -54,47 +59,53 @@ contract Numbers {
 
     }
 
-    function getPlayStatus() public view returns(bool[5],uint8,uint8,bool[5],uint8,uint8) {
-        return (hostPlayer.hands,hostPlayer.currentHandPlayed,hostPlayer.wins,guestPlayer.hands,guestPlayer.currentHandPlayed,guestPlayer.wins);
+    function getPlayStatus() public view returns(bool[5],uint8,bool[5],uint8) {
+        return (hostPlayer.hands,hostPlayer.wins,guestPlayer.hands,guestPlayer.wins);
     }
 
+    //number is not 0 index, it is actual number selected from 1..5
     function playHand(uint8 number) public {
 
         require(gameValidUntil > now);
         require(gameActive);
-        require(number < maxNumber);
+        require(number <= maxNumber);
 
         Player currentPlayer;
-        if(msg.sender==hostPlayer.addr)
+        if(msg.sender==hostPlayer.addr){
+            //first.. check that the user is not taking double turn
+            require(hostPlayer_currentHandPlayed==0);//not played already for this hand
+            hostPlayer_currentHandPlayed = number;
             currentPlayer = hostPlayer;
-        else if(msg.sender==guestPlayer.addr)
+          }
+        else if(msg.sender==guestPlayer.addr){
+            //first.. check that the user is not taking double turn
+            require(guestPlayer_currentHandPlayed==0);//not played already for this hand
+            guestPlayer_currentHandPlayed = number;
             currentPlayer = guestPlayer;
+          }
 
-        //first.. check that the user is not taking double turn
-        require(currentPlayer.currentHandPlayed==0);//not played already for this hand
-        require(currentPlayer.hands[number]==false);// number not used already
+        // now chk number not used already
+        require(currentPlayer.hands[number-1]==false);
+        currentPlayer.hands[number-1] = true;//set hand
 
-        currentPlayer.hands[number] = true;//set hand
-        currentPlayer.currentHandPlayed = number;
-
-        PlayerPlayedHand(currentPlayer.addr,number);
+        PlayerPlayedHand(currentPlayer.addr);
 
        // board[x][y] = msg.sender;
        // movesCounter++;
         gameValidUntil = now + timeToReact;
 
         // now..check if both players have played
-       if((hostPlayer.currentHandPlayed!=0) && (guestPlayer.currentHandPlayed!=0))
+       if((hostPlayer_currentHandPlayed!=0) && (guestPlayer_currentHandPlayed!=0))
             determineHandWinner();
     }
 
     function determineHandWinner() private{
-        if(hostPlayer.currentHandPlayed > guestPlayer.currentHandPlayed)
+        if(hostPlayer_currentHandPlayed > guestPlayer_currentHandPlayed)
         {
             ++hostPlayer.wins;
              HandOverWithWin(hostPlayer.addr);
         }
-        else if(hostPlayer.currentHandPlayed < guestPlayer.currentHandPlayed)
+        else if(hostPlayer_currentHandPlayed < guestPlayer_currentHandPlayed)
         {
             ++guestPlayer.wins;
              HandOverWithWin(guestPlayer.addr);
@@ -105,8 +116,8 @@ contract Numbers {
         }
 
         //reset current hand
-        hostPlayer.currentHandPlayed = 0;
-        guestPlayer.currentHandPlayed = 0;
+        hostPlayer_currentHandPlayed = 0;
+        guestPlayer_currentHandPlayed = 0;
 
         //now check if the game is over overall
         determineOverallWinner();

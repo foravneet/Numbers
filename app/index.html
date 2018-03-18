@@ -1,59 +1,90 @@
 <!DOCTYPE html>
 <html>
+
 <head>
   <title>TicTacToe on the Blockchain</title>
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
- <script   src="https://code.jquery.com/jquery-3.3.1.js"
-  integrity="sha256-2Kok7MbOyxpgUVvAk/HJ2jigOSYS2auK4Pfzbm7uH60="
-  crossorigin="anonymous"></script>
+  <script src="https://code.jquery.com/jquery-3.3.1.js" integrity="sha256-2Kok7MbOyxpgUVvAk/HJ2jigOSYS2auK4Pfzbm7uH60=" crossorigin="anonymous"></script>
   <script src="./app.js"></script>
 </head>
+
 <body>
   <div class="container">
     <div class="row">
       <div class="col-lg-12 text-center">
-  <h1>Lucky 5</h1>
-  <h2>Distributed Numbers Game on the Blockchain</h2>
-  <div class="in-game waiting-for-join" id="waiting">Waiting for Opponent!</div>
-  <div class="in-game waiting-for-join" id="your-turn">Your Turn</div>
-  <table id="board" class="table table-bordered">
-            <tbody>
-          <tr class="table-info">
-            <td>1</td>
-            <td>2</td>
-            <td>3</td>
-            <td>4</td>
-            <td>5</td>
-          </tr>
+        <h1>Lucky 5</h1>
+        <h2>Distributed Numbers Game on the Blockchain</h2>
+        <div class="in-game waiting-for-join" id="waiting">Waiting for Opponent!</div>
+        <div class="in-game waiting-for-join" id="your-turn">Your Turn</div>
+        <div class="row">
+          <div class="col-lg-3 text-left">
+            <table id="myhands" class="table">
+              <thead>
+                <tr class="table-success">
+                  <th> My Wins</th>
+                  <th>Hand</th>
+                  <th>State</th>
+                </tr>
+              </thead>
+              <tbody>
+              </tbody>
+            </table>
+          </div>
+          <div class="col-lg-6 text-center">
+            <table id="board" class="table table-bordered">
+              <tbody>
+                <tr class="table-info">
+                  <td>1</td>
+                  <td>2</td>
+                  <td>3</td>
+                  <td>4</td>
+                  <td>5</td>
+                </tr>
 
-          <tr>
-            <td colspan="5"></td>
-          </tr>
+                <tr>
+                  <td colspan="5"></td>
+                </tr>
 
-          <tr class="table-success">
-            <td>1</td>
-            <td>2</td>
-            <td>3</td>
-            <td>4</td>
-            <td>5</td>
-          </tr>
+                <tr class="table-success">
+                  <td>1</td>
+                  <td>2</td>
+                  <td>3</td>
+                  <td>4</td>
+                  <td>5</td>
+                </tr>
 
-          </tbody>
-          </table>
-          <div class="game-start">
-  <br><br><button id="create" onclick="App.createNewGame()" class="btn btn-primary">Create Game</button> - or - <button id="join" onclick="App.joinGame()" class="btn btn-default">Join Game</button>
-<br />
-One Game Costs: 0.005 Ether<br />
-</div>
-<div class="in-game">
-  Game-Address: <span id="game-address"></span><br />
-  <div class="waiting-for-join">Opponent-Address: <span id="opponent-address"></span></div>
-</div>
-  <hr /><button class="btn btn-sm" onclick="App.useAccountOne()">Use Account #2</button>
-  <br />
-  <span class="hint small"><strong>Hint:</strong> open the browser developer console to view any errors and warnings.</span>
-</div>
-</div>
-</div>
+              </tbody>
+            </table>
+          </div>
+          <div class="col-lg-3 text-left">
+            <table id="guesthands" class="table">
+              <thead>
+                <tr class="table-info">
+                  <th>Opp. Wins</th>
+                  <th>Hand</th>
+                  <th>State</th>
+                </tr>
+              </thead>
+              <tbody>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="game-start">
+          <br><br><button id="create" onclick="App.createNewGame()" class="btn btn-primary">Create Game</button> - or - <button id="join" onclick="App.joinGame()" class="btn btn-default">Join Game</button>
+          <br /> One Game Costs: 0.005 Ether<br />
+        </div>
+        <div class="in-game">
+          Game-Address: <span id="game-address"></span><br />
+          <div class="waiting-for-join">Opponent-Address: <span id="opponent-address"></span></div>
+        </div>
+        <hr /><button class="btn btn-sm" onclick="App.useAccountOne()">Use Account #2</button>
+        <br />
+        <span class="hint small"><strong>Hint:</strong> open the browser developer console to view any errors and warnings.</span>
+      </div>
+    </div>
+  </div>
 </body>
+
 </html>
