@@ -23,6 +23,15 @@ border-style:dashed;
   display: none;
 }
 
+.hide{
+  display: none;
+}
+
+.inactive td {
+    background-color: #ececec;
+    color: #b9b9b9;
+}
+
 .mycolor
 {
   background-color: lime!important;

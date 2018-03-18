@@ -131,6 +131,7 @@ window.App = {
           $(".game-start").hide();
           $("#game-address").text(numbersInstance.address);
           $("#your-turn").hide();
+
           numbersInstance.hostPlayerAddr.call().then(senthostPlayerAddr => {
             $("#opponent-address").text(senthostPlayerAddr);
           });
@@ -156,6 +157,8 @@ window.App = {
       App.unsetTableClicks();
       //empty the cell text
       $("#board")[0].children[0].children[event.data.x].children[event.data.y].innerHTML = "";
+      $("#board tr:nth-child(3) td:nth-child("+(event.data.y+1)+")").removeClass("table-success").addClass("table-secondary");
+
       numbersInstance.playHand(event.data.y+1, {
         from: account,
         gas: 3000000
@@ -180,27 +183,13 @@ window.App = {
       }
       console.log("Hand Played - my account = ", account);
       //sometimes this event is coming 2 times for the same block, below chk to handle only once
-      if (arrEventsFired.indexOf(eventObj.blockNumber) === -1) {
+      /*if (arrEventsFired.indexOf(eventObj.blockNumber) === -1) {
         console.log("PROCESSING - Hand Played event");
-        arrEventsFired.push(eventObj.blockNumber);
+        arrEventsFired.push(eventObj.blockNumber);*/
 
         if (eventObj.args.player != account) {
           console.log('== Setting clicks since other party just played their hand');
 
-          /*
-          //  our turn ..Set the On-Click Handler for still remaining numbers
-          for (var i = 0; i < 3; i++) {
-            for (var j = 0; j < 3; j++) {
-              if (i == 1) continue; //skip middle row as its not clickable anyway
-              if ($("#board")[0].children[0].children[i].children[j].innerHTML == "") {
-                console.log("Setting Click for (x,y): (" + i + "," + "j" + ")");
-                $($("#board")[0].children[0].children[i].children[j]).off('click').click({
-                  x: i,
-                  y: j
-                }, App.registerPlayHand);
-              }
-            }
-          } */
           $("#your-turn").show();
           $("#waiting").hide();
         } else {
@@ -209,31 +198,41 @@ window.App = {
           $("#waiting").show();
         }
 
-      } else {
-        console.log("IGNORING - Hand Played event");
-      }
+      /*} else {
+        console.log("IGNORING - Hand Played event since duplicate");
+      }*/
     },
     //************************
     //******* handOver *******
     //************************
     handOver: function(err, eventObj) {
       console.log("Hand Over", eventObj);
-      if (eventObj.event == "HandOverWithWin") {
-        if (eventObj.args.winner == account) {
-          alert("HAND won !");
+
+      //sometimes this event is coming 2 times for the same block, below chk to handle only once
+      if (arrEventsFired.indexOf(eventObj.blockNumber) === -1) {
+        console.log("PROCESSING - HandOver event");
+        arrEventsFired.push(eventObj.blockNumber);
+
+        if (eventObj.event == "HandOverWithWin") {
+          if (eventObj.args.winner == account) {
+            alert("HAND won !");
+          } else {
+            alert("HAND lost");
+          }
         } else {
-          alert("HAND lost");
+          alert("HAND draw");
         }
+
+        App.printBoard();
+        //set click for all cells
+        App.setTableClicks();
+
+        //$(".in-game").hide();
+        $(".game-start").show();
+
       } else {
-        alert("HAND draw");
+        console.log("IGNORING - HandOver event since duplicate");
       }
-
-      App.printBoard();
-      //set click for all cells
-      App.setTableClicks();
-
-      $(".in-game").hide();
-      $(".game-start").show();
     },
     //************************
     //******* gameOver **********
@@ -243,7 +242,7 @@ window.App = {
       if (eventObj.event == "GameOverWithWin") {
         isHost = null;
         if (eventObj.args.winner == account) {
-          alert("Congratulations, You Won!");
+          alert("Congratulations, You Won the Game!");
         } else {
           alert("Woops, you lost! Try again...");
         }
@@ -254,7 +253,7 @@ window.App = {
       //cleanup
       App.cleanup();
 
-      $(".in-game").hide();
+      //$(".in-game").hide();
       $(".game-start").show();
     },
 
@@ -297,6 +296,7 @@ window.App = {
   },
   handleError: function(error){
     console.error(error);
+    console.trace();
     alert('Error - Ending game, check javascript console for more details');
     App.cleanup();
   },
@@ -338,12 +338,15 @@ window.App = {
           x: 2,
           y: j
         }, App.registerPlayHand);
-
         //set hover effect
         $("#board tr:nth-child(3) td:nth-child("+(j+1)+")").addClass("hover-effect");
       }
     }
     //}
+
+    //msgs
+    $("#taketurn").show();
+    $("#waitturn").hide();
   },
 
   unsetTableClicks: function() {
@@ -357,6 +360,10 @@ window.App = {
         $("#board tr:nth-child(3) td:nth-child("+(j+1)+")").removeClass("hover-effect");
       }
 //    }
+
+      //msgs
+      $("#taketurn").hide();
+      $("#waitturn").show();
   }
 };
 
