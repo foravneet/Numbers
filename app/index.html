@@ -2,9 +2,14 @@
 <html>
 
 <head>
-  <title>Distributed Numbers Game on the Blockchain</title>
+  <!-- Required meta tags -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+  <!-- Bootstrap CSS -->
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
-  <link rel="stylesheet" href="http://netdna.bootstrapcdn.com/bootstrap/3.1.0/css/bootstrap-theme.min.css">
+
+  <title>Distributed Numbers Game on the Blockchain</title>
 
   <script src="https://code.jquery.com/jquery-3.3.1.js" integrity="sha256-2Kok7MbOyxpgUVvAk/HJ2jigOSYS2auK4Pfzbm7uH60=" crossorigin="anonymous"></script>
   <script src="./app.js"></script>
@@ -14,7 +19,7 @@
   <!-- ********************* Top Nav ********************* -->
 
 
-  <nav class="navbar navbar-default">
+  <nav class="navbar navbar-dark bg-dark">
     <div class="container-fluid">
       <div class="navbar-header">
         <a class="navbar-brand" href="#">
@@ -32,24 +37,21 @@
         <div class="in-game waiting-for-join" id="your-turn">Your Turn</div>-->
         <div class="hide" id="taketurn">Select card to Play..</div>
         <div class="hide" id="waitturn">Wait for opponent's turn..</div>
+
         <div class="row">
-          <div class="col-lg-3 text-left">
-            <table id="myhands" class="table">
-              <thead>
-                <tr class="table-success">
-                  <th> My Wins</th>
-                  <th>Hand</th>
-                  <th>State</th>
-                </tr>
-              </thead>
+
+          <div class="col-lg-8 text-center">
+            <br>
+            <div class="progress vertical">
+              <div class="progress-bar" role="progressbar" style="width: 15%" aria-valuenow="15" aria-valuemin="0" aria-valuemax="100"></div>
+              <div class="table-info table-border" role="progressbar" style="width: 30%" aria-valuenow="30" aria-valuemin="0" aria-valuemax="100"></div>
+              <div class="progress-bar bg-info" role="progressbar" style="width: 20%" aria-valuenow="20" aria-valuemin="0" aria-valuemax="100"></div>
+            </div>
+            <br>
+
+            <table id="board">
               <tbody>
-              </tbody>
-            </table>
-          </div>
-          <div class="col-lg-6 text-center">
-            <table id="board" class="table table-bordered">
-              <tbody>
-                <tr >
+                <tr>
                   <td class="table-info">1</td>
                   <td class="table-info">2</td>
                   <td class="table-info">3</td>
@@ -72,19 +74,7 @@
               </tbody>
             </table>
           </div>
-          <div class="col-lg-3 text-left">
-            <table id="guesthands" class="table">
-              <thead>
-                <tr class="table-info">
-                  <th>Opp. Wins</th>
-                  <th>Hand</th>
-                  <th>State</th>
-                </tr>
-              </thead>
-              <tbody>
-              </tbody>
-            </table>
-          </div>
+
         </div>
 
         <div class="game-start">

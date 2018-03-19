@@ -9,7 +9,6 @@
   width: 20%;
   height: 20%;
   vertical-align: center;
-  text-align: center;
 }
 
 #board td.hover-effect:hover {
@@ -25,14 +24,4 @@ border-style:dashed;
 
 .hide{
   display: none;
-}
-
-.inactive td {
-    background-color: #ececec;
-    color: #b9b9b9;
-}
-
-.mycolor
-{
-  background-color: lime!important;
 }
