@@ -31,10 +31,10 @@ contract Numbers {
 
     event PlayerJoined(address player);
     event PlayerPlayedHand(address player);
-    event GameOverWithWin(address winner, uint8 hostwins,uint8 guestwins);
-    event GameOverWithDraw(uint8 hostwins,uint8 guestwins);
-    event HandOverWithWin(address winner, uint8 hostHand, uint8 guestHand,uint8 hostwins,uint8 guestwins);
-    event HandOverWithDraw(uint8 hand,uint8 hostwins,uint8 guestwins);
+    event GameOverWithWin(address winner, uint8 hostWins,uint8 guestWins);
+    event GameOverWithDraw(uint8 hostWins,uint8 guestWins);
+    event HandOverWithWin(address winner, uint8 hostHand, uint8 guestHand,uint8 hostWins,uint8 guestWins);
+    event HandOverWithDraw(uint8 hand,uint8 hostWins,uint8 guestWins);
     event PayoutSuccess(address receiver, uint amountInWei);
 
     function Numbers() public payable {

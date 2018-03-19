@@ -33,10 +33,6 @@
   <div class="container">
     <div class="row">
       <div class="col-lg-12 text-center">
-        <!--  <div class="in-game waiting-for-join" id="waiting">Waiting for Opponent!</div>
-        <div class="in-game waiting-for-join" id="your-turn">Your Turn</div>-->
-        <div class="hide" id="taketurn">Select card to Play..</div>
-        <div class="hide" id="waitturn">Wait for opponent's turn..</div>
 
         <div class="row">
 
@@ -51,54 +47,66 @@
               <div class="col-lg-10">
                 <div id="scoreprogress" class="progress">
                   <!--
-                  <div class="table-info" role="progressbar" style="width: 20%">(2,3)</div>
+                  <div class="table-info" role='progressbar' style="width: 20%">(2,3)</div>
                   <div class="table-info" role="progressbar" style="width: 20%">(4,1)</div>
                   <div class="table-success" role="progressbar" style="width: 20%">(1,2)</div>
                 -->
                 </div>
               </div>
-              <div class="col-lg-1 display-4 text-success align-self-end" id="theirscore">0</div>
+              <div class="col-lg-1 display-4 text-success align-self-end" id="myscore">0</div>
             </div>
 
             <br>
+            <div class="row align-items-center">
+              <div class="col-lg-3 align-self-center">
+                <div class="game-start">
 
-            <table id="board">
-              <tbody>
-                <tr>
-                  <td class="table-info">1</td>
-                  <td class="table-info">2</td>
-                  <td class="table-info">3</td>
-                  <td class="table-info">4</td>
-                  <td class="table-info">5</td>
-                </tr>
+                  <br><br><button id="create" onclick="App.createNewGame()" class="btn btn-primary">Create Game</button> - or - <button id="join" onclick="App.joinGame()" class="btn btn-default">Join Game</button>
+                  <br /> One Game Costs: 0.005 Ether<br />
+                </div>
 
-                <tr>
-                  <td colspan="5"><div id="messages"></div></td>
-                </tr>
+                <div class="in-game">
+                  Game-Address: <span id="game-address"></span><br />
+                  <div class="waiting-for-join">Opponent-Address: <span id="opponent-address"></span></div>
+                </div>
+              </div>
+              <div class="col-lg-6 align-self-center">
+                <table id="board">
+                  <tbody>
+                    <tr>
+                      <td class="table-info">1</td>
+                      <td class="table-info">2</td>
+                      <td class="table-info">3</td>
+                      <td class="table-info">4</td>
+                      <td class="table-info">5</td>
+                    </tr>
 
-                <tr>
-                  <td class="table-success">1</td>
-                  <td class="table-success">2</td>
-                  <td class="table-success">3</td>
-                  <td class="table-success">4</td>
-                  <td class="table-success">5</td>
-                </tr>
+                    <tr>
+                      <td colspan="5">
+                        <div id="messages"></div>
+                      </td>
+                    </tr>
 
-              </tbody>
-            </table>
+                    <tr>
+                      <td class="table-success">1</td>
+                      <td class="table-success">2</td>
+                      <td class="table-success">3</td>
+                      <td class="table-success">4</td>
+                      <td class="table-success">5</td>
+                    </tr>
+
+                  </tbody>
+                </table>
+              </div>
+              <div class="col-lg-3 align-self-center">
+                hgjhgjh
+              </div>
+            </div>
           </div>
 
         </div>
 
-        <div class="game-start">
-          <br><br><button id="create" onclick="App.createNewGame()" class="btn btn-primary">Create Game</button> - or - <button id="join" onclick="App.joinGame()" class="btn btn-default">Join Game</button>
-          <br /> One Game Costs: 0.005 Ether<br />
-        </div>
 
-        <div class="in-game">
-          Game-Address: <span id="game-address"></span><br />
-          <div class="waiting-for-join">Opponent-Address: <span id="opponent-address"></span></div>
-        </div>
 
         <hr /><button class="btn btn-sm" onclick="App.useAccountOne()">Use Account #2</button>
         <br />
