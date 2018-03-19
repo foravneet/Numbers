@@ -47,12 +47,12 @@ window.App = {
       // Get the initial account balance so it can be displayed.
       web3.eth.getAccounts(function(err, accs) {
         if (err != null) {
-          alert("There was an error fetching your accounts.");
+          App.showMessage("There was an error fetching your accounts.");
           return;
         }
 
         if (accs.length == 0) {
-          alert("Couldn't get any accounts! Make sure your Ethereum client is configured correctly.");
+          App.showMessage("Couldn't get any accounts! Make sure your Ethereum client is configured correctly.");
           return;
         }
 
@@ -215,12 +215,12 @@ window.App = {
 
         if (eventObj.event == "HandOverWithWin") {
           if (eventObj.args.winner == account) {
-            alert("HAND won !");
+            App.showMessage("HAND won !");
           } else {
-            alert("HAND lost");
+            App.showMessage("HAND lost");
           }
         } else {
-          alert("HAND draw");
+          App.showMessage("HAND draw");
         }
 
         App.printBoard();
@@ -242,12 +242,12 @@ window.App = {
       if (eventObj.event == "GameOverWithWin") {
         isHost = null;
         if (eventObj.args.winner == account) {
-          alert("Congratulations, You Won the Game!");
+          App.showMessage("Congratulations, You Won the Game!");
         } else {
-          alert("Woops, you lost! Try again...");
+          App.showMessage("Woops, you lost! Try again...");
         }
       } else {
-        alert("That's a draw, oh my... next time you do beat'em!");
+        App.showMessage("That's a draw, oh my... next time you do beat'em!");
       }
 
       //cleanup
@@ -297,7 +297,7 @@ window.App = {
   handleError: function(error){
     console.error(error);
     console.trace();
-    alert('Error - Ending game, check javascript console for more details');
+    App.showMessage('Error - Ending game, check javascript console for more details');
     App.cleanup();
   },
   registerEvents: function() {
@@ -364,6 +364,9 @@ window.App = {
       //msgs
       $("#taketurn").hide();
       $("#waitturn").show();
+  },
+  showMessage: function(msg){
+    $("#messages").text(msg);
   }
 };
 
