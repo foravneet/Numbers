@@ -31,10 +31,10 @@ contract Numbers {
 
     event PlayerJoined(address player);
     event PlayerPlayedHand(address player);
-    event GameOverWithWin(address winner);
-    event GameOverWithDraw();
-    event HandOverWithWin(address winner);
-    event HandOverWithDraw();
+    event GameOverWithWin(address winner, uint8 hostwins,uint8 guestwins);
+    event GameOverWithDraw(uint8 hostwins,uint8 guestwins);
+    event HandOverWithWin(address winner, uint8 hostHand, uint8 guestHand,uint8 hostwins,uint8 guestwins);
+    event HandOverWithDraw(uint8 hand,uint8 hostwins,uint8 guestwins);
     event PayoutSuccess(address receiver, uint amountInWei);
 
     function Numbers() public payable {
@@ -103,16 +103,16 @@ contract Numbers {
         if(hostPlayer_currentHandPlayed > guestPlayer_currentHandPlayed)
         {
             ++hostPlayer.wins;
-             HandOverWithWin(hostPlayer.addr);
+             HandOverWithWin(hostPlayer.addr,hostPlayer_currentHandPlayed,guestPlayer_currentHandPlayed,hostPlayer.wins,guestPlayer.wins);
         }
         else if(hostPlayer_currentHandPlayed < guestPlayer_currentHandPlayed)
         {
             ++guestPlayer.wins;
-             HandOverWithWin(guestPlayer.addr);
+             HandOverWithWin(guestPlayer.addr,hostPlayer_currentHandPlayed,guestPlayer_currentHandPlayed,hostPlayer.wins,guestPlayer.wins);
         }
         else
         {
-             HandOverWithDraw();//draw
+             HandOverWithDraw(hostPlayer_currentHandPlayed,hostPlayer.wins,guestPlayer.wins);//draw
         }
 
         //reset current hand
@@ -151,7 +151,7 @@ contract Numbers {
     function setWinner(address player) private {
         gameActive = false;
         //emit an event
-         GameOverWithWin(player);
+         GameOverWithWin(player,hostPlayer.wins,guestPlayer.wins);
         uint balanceToPayOut = this.balance;
         if(player.send(balanceToPayOut) != true) {
             if(player == hostPlayer.addr) {
@@ -186,7 +186,7 @@ contract Numbers {
 
     function setDraw() private {
         gameActive = false;
-         GameOverWithDraw();
+         GameOverWithDraw(hostPlayer.wins,guestPlayer.wins);
 
         uint balanceToPayOut = this.balance/2;
 
