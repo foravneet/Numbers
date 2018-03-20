@@ -23,6 +23,7 @@ var accounts;
 var account;
 var numbersInstance;
 var isHost = null;
+var isGameOver = false;
 
 //events
 var gameOverWithWinEvent;
@@ -35,228 +36,243 @@ var playerPlayedHandEvent;
 var arrEventsFired;
 
 window.App = {
-  //************************
-  //******* start **********
-  //************************
-  start: function() {
-    var self = this;
+    //************************
+    //******* start **********
+    //************************
+    start: function() {
+      var self = this;
 
-    // Bootstrap the MetaCoin abstraction for Use.
-    Numbers.setProvider(web3.currentProvider);
+      // Bootstrap the MetaCoin abstraction for Use.
+      Numbers.setProvider(web3.currentProvider);
 
-    // Get the initial account balance so it can be displayed.
-    web3.eth.getAccounts(function(err, accs) {
-      if (err != null) {
-        App.showMessage("There was an error fetching your accounts.");
-        return;
-      }
-
-      if (accs.length == 0) {
-        App.showMessage("Couldn't get any accounts! Make sure your Ethereum client is configured correctly.");
-        return;
-      }
-
-      accounts = accs;
-      account = accounts[0];
-      arrEventsFired = [];
-
-    });
-  },
-  //************************
-  //******* useAccountOne **********
-  //************************
-  useAccountOne: function() {
-    account = accounts[1];
-  },
-  //************************
-  //******* createNewGame **********
-  //************************
-  createNewGame: function() {
-
-    Numbers.new({
-      from: account,
-      value: web3.toWei(0.005, "ether"),
-      gas: 3000000
-    }).then(instance => {
-      numbersInstance = instance;
-
-      isHost = true; //set me as host
-
-      $(".in-game").show();
-      $(".waiting-for-join").hide();
-      $(".game-start").hide();
-      $("#game-address").text(instance.address);
-      $("#waiting").show();
-
-      playerJoinedEvent = numbersInstance.PlayerJoined();
-
-      playerJoinedEvent.watch(function(error, eventObj) {
-        if (!error) {
-          console.log(eventObj);
-        } else {
-          console.error(error);
+      // Get the initial account balance so it can be displayed.
+      web3.eth.getAccounts(function(err, accs) {
+        if (err != null) {
+          App.showMessage("There was an error fetching your accounts.");
+          return;
         }
-        $(".waiting-for-join").show();
-        $("#opponent-address").text(eventObj.args.player);
-        $("#your-turn").hide();
-        playerJoinedEvent.stopWatching();
-        App.newGameBegins();
+
+        if (accs.length == 0) {
+          App.showMessage("Couldn't get any accounts! Make sure your Ethereum client is configured correctly.");
+          return;
+        }
+
+        accounts = accs;
+        account = accounts[0];
+        arrEventsFired = [];
+
       });
-      //console.log(instance);
-    }).catch(error => {
-      App.handleError(error);
-    })
-  },
-  //************************
-  //******* joinGame **********
-  //************************
-  joinGame: function() {
-    var gameAddress = prompt("Address of the Game");
-    if (gameAddress != null) {
-      Numbers.at(gameAddress).then(instance => {
+    },
+    //************************
+    //******* useAccountOne **********
+    //************************
+    useAccountOne: function() {
+      account = accounts[1];
+    },
+    //************************
+    //******* createNewGame **********
+    //************************
+    createNewGame: function() {
+
+      Numbers.new({
+        from: account,
+        value: web3.toWei(0.005, "ether"),
+        gas: 3000000
+      }).then(instance => {
         numbersInstance = instance;
 
-        App.registerEvents();
-
-        return numbersInstance.joinGame({
-          from: account,
-          value: web3.toWei(0.005, "ether"),
-          gas: 3000000
-        });
-      }).then(txResult => {
-
-        isHost = false; //set me as guest
+        isHost = true; //set me as host
 
         $(".in-game").show();
+        $(".waiting-for-join").hide();
         $(".game-start").hide();
-        $("#game-address").text(numbersInstance.address);
-        $("#your-turn").hide();
+        $("#game-address").text(instance.address);
+        $("#waiting").show();
 
-        numbersInstance.hostPlayerAddr.call().then(senthostPlayerAddr => {
-          $("#opponent-address").text(senthostPlayerAddr);
+        playerJoinedEvent = numbersInstance.PlayerJoined();
+
+        playerJoinedEvent.watch(function(error, eventObj) {
+          if (!error) {
+            console.log(eventObj);
+          } else {
+            console.error(error);
+          }
+          $(".waiting-for-join").show();
+          $("#opponent-address").text(eventObj.args.player);
+          $("#your-turn").hide();
+          playerJoinedEvent.stopWatching();
+          App.newGameBegins();
         });
-        App.newGameBegins();
-      }).catch(function(error) {
-        console.error('joinGame Error', error);
+        //console.log(instance);
+      }).catch(error => {
+        App.handleError(error);
       })
-    }
-  },
-  newGameBegins: function() {
-    //TODO.. reset status tables
-    //App.printBoard();
-    App.setAllNumbers(); //first set all number cells with numbers
-    App.setTableClicks(); //only then call this func as it'll will set clicks only for number cells with text
-    App.registerEvents();
-  },
-  //************************
-  //******* registerPlayHand **********
-  //************************
-  registerPlayHand: function(event) {
-    console.log("registerPlayHand - ", event);
-    //make all cells un clickable while we register this hand
-    App.unsetTableClicks();
+    },
+    //************************
+    //******* joinGame **********
+    //************************
+    joinGame: function() {
+      var gameAddress = prompt("Address of the Game");
+      if (gameAddress != null) {
+        Numbers.at(gameAddress).then(instance => {
+          numbersInstance = instance;
 
-    //highlight selected cell
-    $("#board tr:nth-child(3) td:nth-child(" + (event.data.y + 1) + ")").addClass("rounded-circle");
+          App.registerEvents();
 
-    numbersInstance.playHand(event.data.y + 1, {
-      from: account,
-      gas: 3000000
-    }).then(txResult => {
-      console.log("registerPlayHand returned --- ", txResult);
+          return numbersInstance.joinGame({
+            from: account,
+            value: web3.toWei(0.005, "ether"),
+            gas: 3000000
+          });
+        }).then(txResult => {
+
+          isHost = false; //set me as guest
+
+          $(".in-game").show();
+          $(".game-start").hide();
+          $("#game-address").text(numbersInstance.address);
+          $("#your-turn").hide();
+
+          numbersInstance.hostPlayerAddr.call().then(senthostPlayerAddr => {
+            $("#opponent-address").text(senthostPlayerAddr);
+          });
+          App.newGameBegins();
+        }).catch(function(error) {
+          console.error('joinGame Error', error);
+        })
+      }
+    },
+    newGameBegins: function() {
+      //TODO.. reset status tables
       //App.printBoard();
+      App.setAllNumbers(); //first set all number cells with numbers
+      App.setTableClicks(); //only then call this func as it'll will set clicks only for number cells with text
+      App.registerEvents();
+    },
+    //************************
+    //******* registerPlayHand **********
+    //************************
+    registerPlayHand: function(event) {
+      console.log("registerPlayHand - ", event);
+      //make all cells un clickable while we register this hand
+      App.unsetTableClicks();
+      App.showMessage("Wait for opponent's turn..");
 
-    }).catch(error => {
-      App.handleError(error);
-    })
+      //highlight selected cell
+      $("#board tr:nth-child(3) td:nth-child(" + (event.data.y + 1) + ")").addClass("rounded-circle");
 
-    ;
-  },
-  //************************
-  //*** handPlayedEvent ****
-  //************************
-  handPlayedEvent: function(error, eventObj) {
-    if (!error) {
-      console.log("Hand Played event - ", eventObj);
-    } else {
-      console.error(error);
-    }
-    console.log("Hand Played - my account = ", account);
-    //sometimes this event is coming 2 times for the same block, below chk to handle only once
-    /*if (arrEventsFired.indexOf(eventObj.blockNumber) === -1) {
-      console.log("PROCESSING - Hand Played event");
-      arrEventsFired.push(eventObj.blockNumber);*/
+      numbersInstance.playHand(event.data.y + 1, {
+        from: account,
+        gas: 3000000
+      })
+      /*
+      .then(txResult => {
+        console.log("registerPlayHand returned --- ", txResult);
+        //App.printBoard();
 
-    if (eventObj.args.player != account) {
-      console.log('== Setting clicks since other party just played their hand');
-
-      $("#your-turn").show();
-      $("#waiting").hide();
-    } else {
-      //opponents turn
-      $("#your-turn").hide();
-      $("#waiting").show();
-    }
-
-    /*} else {
-      console.log("IGNORING - Hand Played event since duplicate");
-    }*/
-  },
-  //************************
-  //******* handOver *******
-  //************************
-  handOver: function(err, eventObj) {
-    console.log("Hand Over", eventObj);
-    var scoreString;
-    var classString;
-    var myHand;
-    var theirHand;
-    //sometimes this event is coming 2 times for the same block, below chk to handle only once
-    if (arrEventsFired.indexOf(eventObj.blockNumber) === -1) {
-      console.log("PROCESSING - HandOver event");
-      arrEventsFired.push(eventObj.blockNumber);
-
-      if (eventObj.event == "HandOverWithWin") {
-        if (eventObj.args.winner == account) {
-          App.showMessage("HAND won !");
-          classString = "table-success";
-        } else {
-          App.showMessage("HAND lost");
-          classString = "table-info";
-
-        }
+      }).catch(error => {
+        App.handleError(error);
+      });
+      */
+    },
+    //************************
+    //*** handPlayedEvent ****
+    //************************
+    handPlayedEvent: function(error, eventObj) {
+      if (!error) {
+        console.log("Hand Played event - ", eventObj);
       } else {
-        App.showMessage("HAND draw");
-        classString = "table-secondary";
-        scoreString = "(" + eventObj.args.hand + "," + eventObj.args.hand + ")";
-        myHand = eventObj.args.hand;
-        theirHand = eventObj.args.hand;
+        console.error(error);
+      }
+      console.log("Hand Played - my account = ", account);
+      //sometimes this event is coming 2 times for the same block, below chk to handle only once
+      /*if (arrEventsFired.indexOf(eventObj.blockNumber) === -1) {
+        console.log("PROCESSING - Hand Played event");
+        arrEventsFired.push(eventObj.blockNumber);*/
+
+      if (eventObj.args.player != account) {
+        console.log('== Setting clicks since other party just played their hand');
+
+        $("#your-turn").show();
+        $("#waiting").hide();
+      } else {
+        //opponents turn
+        $("#your-turn").hide();
+        $("#waiting").show();
       }
 
-      if (isHost == true) {
-        $("#myscore").text(eventObj.args.hostWins);
-        $("#theirscore").text(eventObj.args.guestWins);
-        if (!scoreString)
-          scoreString = "(" + eventObj.args.hostHand + "," + eventObj.args.guestHand + ")";
-        myHand = eventObj.args.hostHand;
-        theirHand = eventObj.args.guestHand;
-      } else {
-        $("#myscore").text(eventObj.args.guestWins);
-        $("#theirscore").text(eventObj.args.hostWins);
-        if (!scoreString)
+      /*} else {
+        console.log("IGNORING - Hand Played event since duplicate");
+      }*/
+    },
+    //************************
+    //******* handOver *******
+    //************************
+    handOver: function(err, eventObj) {
+      console.log("--- Hand Over", eventObj);
+      var scoreString = null;
+      var classString;
+      var myHand;
+      var theirHand;
+      //sometimes this event is coming 2 times for the same block, below chk to handle only once
+      if ((arrEventsFired.indexOf(eventObj.blockNumber) === -1) && !isGameOver) {
+        console.log("PROCESSING - HandOver event");
+        arrEventsFired.push(eventObj.blockNumber);
+
+        if (eventObj.event == "HandOverWithWin") {
+          if (eventObj.args.winner == account) {
+            App.showMessage("HAND won !");
+
+            classString = "table-success";
+          } else {
+            App.showMessage("HAND lost");
+            classString = "table-info";
+
+          }
+        } else if (eventObj.event == "HandOverWithDraw"){
+          App.showMessage("HAND draw");
+          classString = "table-secondary";
+          scoreString = "(" + eventObj.args.hand + "," + eventObj.args.hand + ")";
+          myHand = eventObj.args.hand;
+          theirHand = eventObj.args.hand;
+        } else {
+          console.log("-- Coming from GameOver Function: Processing score updates of last hand in handOver function");
+        }
+
+        if (isHost == true) {
+          $("#myscore").text(eventObj.args.hostWins);
+          $("#theirscore").text(eventObj.args.guestWins);
+          if (scoreString == null) {
+            scoreString = "(" + eventObj.args.hostHand + "," + eventObj.args.guestHand + ")";
+            myHand = eventObj.args.hostHand;
+            theirHand = eventObj.args.guestHand;
+          }
+        } else {
+          $("#myscore").text(eventObj.args.guestWins);
+          $("#theirscore").text(eventObj.args.hostWins);
+          if (scoreString == null) {
           scoreString = "(" + eventObj.args.guestHand + "," + eventObj.args.hostHand + ")";
-        myHand = eventObj.args.guestHand;
-        theirHand = eventObj.args.hostHand;
+          myHand = eventObj.args.guestHand;
+          theirHand = eventObj.args.hostHand;
+        }
       }
 
       //empty the cell text
       //$("#board")[0].children[0].children[event.data.x].children[event.data.y].innerHTML = "";
       //$("#board tr:nth-child(3) td:nth-child(" + (event.data.y + 1) + ")").removeClass("table-success").addClass("table-secondary");
       console.log($("#board"));
-      $("#board tr:nth-child(1) td:nth-child(" + theirHand + ")").removeClass("table-info").addClass("table-secondary").addClass("rounded-circle");
-      $("#board tr:nth-child(3) td:nth-child(" + myHand + ")").removeClass("table-success").addClass("table-secondary");//this already has rounded circle
-      $("#board")[0].children[0].children[0].children[theirHand - 1].innerHTML = "";
-      $("#board")[0].children[0].children[2].children[myHand - 1].innerHTML = "";
+      $("#board tr:nth-child(1) td:nth-child(" + theirHand + ")").addClass("rounded-circle", 2000, "easeOutBounce");
+
+
+      setTimeout(function() {
+        $("#board")[0].children[0].children[0].children[theirHand - 1].innerHTML = "";
+        $("#board")[0].children[0].children[2].children[myHand - 1].innerHTML = "";
+        $("#board tr:nth-child(1) td:nth-child(" + theirHand + ")").removeClass("table-info", 1000, "easeOutBounce").addClass("table-secondary", 1000, "easeOutBounce"); //already added rounded circle class above
+        $("#board tr:nth-child(3) td:nth-child(" + myHand + ")").removeClass("table-success", 1000, "easeOutBounce").addClass("table-secondary", 1000, "easeOutBounce"); //this already has rounded circle
+      }, 1000);
+
+
+      //$('#messages').prepend("<img src='https://media.giphy.com/media/xT1R9GYCO1eRlwxW24/giphy-downsized.gif' />");
 
       //update progress bar
       $("#scoreprogress").append("<div class=" + classString + " role='progressbar' style='width: 20%'>" + scoreString + "</div>");
@@ -269,14 +285,21 @@ window.App = {
       $(".game-start").show();
 
     } else {
-      console.log("IGNORING - HandOver event since duplicate");
+      console.log("IGNORING - HandOver event since duplicate OR game over");
     }
+  },
+  //************************
+  //******* gameOver **********
+  //************************
+  updateScoreEffects: function(){
+
   },
   //************************
   //******* gameOver **********
   //************************
   gameOver: function(err, eventObj) {
     console.log("Game Over", eventObj);
+    isGameOver = true;
 
     if (eventObj.event == "GameOverWithWin") {
       if (eventObj.args.winner == account) {
@@ -289,7 +312,7 @@ window.App = {
     }
 
     //cleanup
-    App.cleanup();
+    //App.cleanup();
 
     //$(".in-game").hide();
     $(".game-start").show();
@@ -299,26 +322,26 @@ window.App = {
   //******* printBoard **********
   // This function is not valid anymore, as we use HandOver & GameOver alerts now to update score etc.
   //************************
-/*  printBoard: function() {
-    console.log('printboard');
-    numbersInstance.getPlayStatus.call().then((result) => {
-      console.log(result);
-      var hostHand = result[0];
-      //var hostCurrentHandPlayed = result[1];
-      var hostWins = result[1];
-      var guestHand = result[2];
-      //var guestCurrentHandPlayed = result[4];
-      var guestWins = result[3];
-      if (isHost == true) {
-        $('#myhands > tbody:last-child').append('<tr><td>' + hostWins + '</td><td>' + '?' + '</td><td>' + hostHand + '</td></tr>');
-        $('#guesthands > tbody:last-child').append('<tr><td>' + guestWins + '</td><td>' + '?' + '</td><td>' + guestHand + '</td></tr>');
-      } else {
-        $('#myhands > tbody:last-child').append('<tr><td>' + guestWins + '</td><td>' + '?' + '</td><td>' + guestHand + '</td></tr>');
-        $('#guesthands > tbody:last-child').append('<tr><td>' + hostWins + '</td><td>' + '?' + '</td><td>' + hostHand + '</td></tr>');
-      }
+  /*  printBoard: function() {
+      console.log('printboard');
+      numbersInstance.getPlayStatus.call().then((result) => {
+        console.log(result);
+        var hostHand = result[0];
+        //var hostCurrentHandPlayed = result[1];
+        var hostWins = result[1];
+        var guestHand = result[2];
+        //var guestCurrentHandPlayed = result[4];
+        var guestWins = result[3];
+        if (isHost == true) {
+          $('#myhands > tbody:last-child').append('<tr><td>' + hostWins + '</td><td>' + '?' + '</td><td>' + hostHand + '</td></tr>');
+          $('#guesthands > tbody:last-child').append('<tr><td>' + guestWins + '</td><td>' + '?' + '</td><td>' + guestHand + '</td></tr>');
+        } else {
+          $('#myhands > tbody:last-child').append('<tr><td>' + guestWins + '</td><td>' + '?' + '</td><td>' + guestHand + '</td></tr>');
+          $('#guesthands > tbody:last-child').append('<tr><td>' + hostWins + '</td><td>' + '?' + '</td><td>' + hostHand + '</td></tr>');
+        }
 
-    });
-  },*/
+      });
+    },*/
 
   //************************
   //******* Util functions **********
@@ -399,9 +422,6 @@ window.App = {
       $("#board tr:nth-child(3) td:nth-child(" + (j + 1) + ")").removeClass("hover-effect");
     }
     //    }
-
-    //msgs
-    App.showMessage("Wait for opponent's turn..");
   },
 
   showMessage: function(msg) {
