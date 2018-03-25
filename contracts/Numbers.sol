@@ -1,5 +1,8 @@
 pragma solidity ^0.4.19;
 
+//TODO.. better comments
+//TODO.. better exception handling
+
 contract Numbers {
     uint constant public gameCost = 0.005 ether;
     bool gameActive;
@@ -8,7 +11,7 @@ contract Numbers {
     uint8 constant maxNumber = 5;
 
     // Structs
-    //TODO break this struct inti public & private area
+    //public user data that can be sent as status
     struct Player {
         bool[5] hands;
         address addr;
@@ -16,25 +19,26 @@ contract Numbers {
         uint8 wins;
     }
 
+    // private user data that cant be shared.. so keeping this outside the public struct vars..
+    // as the opponent should not know your hand before making their choice for hand
+    uint8 private hostPlayer_currentHandPlayed;// 0 means not played yet, specific number means the current hand played
+    uint8 private guestPlayer_currentHandPlayed;
+
     Player private hostPlayer;
     Player private guestPlayer;
     address public hostPlayerAddr;
 
-    // keeping this outside teh public struct vars as the opponent should not know your hand..
-    // ..before making their choice for hand
-    uint8 private hostPlayer_currentHandPlayed;// 0 means not played yet, specific number means the current hand played
-    uint8 private guestPlayer_currentHandPlayed;
-
     uint constant timeToReact = 3 minutes;
     uint gameValidUntil;
+    uint handsCompleted = 0;
 
 
     event PlayerJoined(address player);
     event PlayerPlayedHand(address player);
-    event GameOverWithWin(address winner, uint8 hostWins,uint8 guestWins);
-    event GameOverWithDraw(uint8 hostWins,uint8 guestWins);
-    event HandOverWithWin(address winner, uint8 hostHand, uint8 guestHand,uint8 hostWins,uint8 guestWins);
-    event HandOverWithDraw(uint8 hand,uint8 hostWins,uint8 guestWins);
+    event GameOverWithWin(address winner, uint8 hostWins,uint8 guestWins, uint handsCompleted);
+    event GameOverWithDraw(uint8 hostWins,uint8 guestWins, uint handsCompleted);
+    event HandOverWithWin(address winner, uint8 hostHand, uint8 guestHand,uint8 hostWins,uint8 guestWins, uint handsCompleted);
+    event HandOverWithDraw(uint8 hand,uint8 hostWins,uint8 guestWins, uint handsCompleted);
     event PayoutSuccess(address receiver, uint amountInWei);
 
     function Numbers() public payable {
@@ -59,7 +63,9 @@ contract Numbers {
 
     }
 
-    function getPlayStatus() public view returns(bool[5],uint8,bool[5],uint8) {
+    //TODO make this function public after testing latest changes to update 'hands' array..
+    //.. only after hand is over are working fine
+    function getPlayStatus() private view returns(bool[5],uint8,bool[5],uint8) {
         return (hostPlayer.hands,hostPlayer.wins,guestPlayer.hands,guestPlayer.wins);
     }
 
@@ -71,22 +77,21 @@ contract Numbers {
         require(number <= maxNumber);
 
         Player currentPlayer;
-        if(msg.sender==hostPlayer.addr){
+        if(msg.sender == hostPlayer.addr){
             //first.. check that the user is not taking double turn
-            require(hostPlayer_currentHandPlayed==0);//not played already for this hand
+            require(hostPlayer_currentHandPlayed == 0);//not played already for this hand
             hostPlayer_currentHandPlayed = number;
             currentPlayer = hostPlayer;
           }
-        else if(msg.sender==guestPlayer.addr){
+        else if(msg.sender == guestPlayer.addr){
             //first.. check that the user is not taking double turn
-            require(guestPlayer_currentHandPlayed==0);//not played already for this hand
+            require(guestPlayer_currentHandPlayed == 0);//not played already for this hand
             guestPlayer_currentHandPlayed = number;
             currentPlayer = guestPlayer;
           }
 
         // now chk number not used already
         require(currentPlayer.hands[number-1]==false);
-        currentPlayer.hands[number-1] = true;//set hand
 
         PlayerPlayedHand(currentPlayer.addr);
 
@@ -95,24 +100,31 @@ contract Numbers {
         gameValidUntil = now + timeToReact;
 
         // now..check if both players have played
-       if((hostPlayer_currentHandPlayed!=0) && (guestPlayer_currentHandPlayed!=0))
+       if((hostPlayer_currentHandPlayed!=0) && (guestPlayer_currentHandPlayed!=0)) {
+            //set hands array now since hand is over
+            hostPlayer.hands[hostPlayer_currentHandPlayed-1] = true;
+            guestPlayer.hands[guestPlayer_currentHandPlayed-1] = true;
             determineHandWinner();
+      }
     }
 
     function determineHandWinner() private{
-        if(hostPlayer_currentHandPlayed > guestPlayer_currentHandPlayed)
-        {
+
+        //increement hands movesCounter
+        ++handsCompleted;
+
+        if(hostPlayer_currentHandPlayed > guestPlayer_currentHandPlayed) {
             ++hostPlayer.wins;
-             HandOverWithWin(hostPlayer.addr,hostPlayer_currentHandPlayed,guestPlayer_currentHandPlayed,hostPlayer.wins,guestPlayer.wins);
+            HandOverWithWin(hostPlayer.addr, hostPlayer_currentHandPlayed, guestPlayer_currentHandPlayed,
+              hostPlayer.wins, guestPlayer.wins, handsCompleted);
         }
-        else if(hostPlayer_currentHandPlayed < guestPlayer_currentHandPlayed)
-        {
+        else if(hostPlayer_currentHandPlayed < guestPlayer_currentHandPlayed){
             ++guestPlayer.wins;
-             HandOverWithWin(guestPlayer.addr,hostPlayer_currentHandPlayed,guestPlayer_currentHandPlayed,hostPlayer.wins,guestPlayer.wins);
+            HandOverWithWin(guestPlayer.addr, hostPlayer_currentHandPlayed, guestPlayer_currentHandPlayed,
+               hostPlayer.wins, guestPlayer.wins, handsCompleted);
         }
-        else
-        {
-             HandOverWithDraw(hostPlayer_currentHandPlayed,hostPlayer.wins,guestPlayer.wins);//draw
+        else{
+             HandOverWithDraw(hostPlayer_currentHandPlayed, hostPlayer.wins, guestPlayer.wins, handsCompleted);//draw
         }
 
         //reset current hand
@@ -150,9 +162,9 @@ contract Numbers {
 
     function setWinner(address player) private {
         gameActive = false;
-        //emit an event
-         GameOverWithWin(player,hostPlayer.wins,guestPlayer.wins);
         uint balanceToPayOut = this.balance;
+
+        //transfer money to the winner
         if(player.send(balanceToPayOut) != true) {
             if(player == hostPlayer.addr) {
                 hostPlayer.balanceToWithdraw = balanceToPayOut;
@@ -160,9 +172,12 @@ contract Numbers {
                 guestPlayer.balanceToWithdraw = balanceToPayOut;
             }
         } else {
-             PayoutSuccess(player, balanceToPayOut);
+            PayoutSuccess(player, balanceToPayOut);
         }
-        //transfer money to the winner
+
+        //emit an event
+        GameOverWithWin(player, hostPlayer.wins, guestPlayer.wins, handsCompleted);
+
     }
 
     function withdrawWin() public {
@@ -186,7 +201,7 @@ contract Numbers {
 
     function setDraw() private {
         gameActive = false;
-         GameOverWithDraw(hostPlayer.wins,guestPlayer.wins);
+         GameOverWithDraw(hostPlayer.wins,guestPlayer.wins,handsCompleted);
 
         uint balanceToPayOut = this.balance/2;
 
