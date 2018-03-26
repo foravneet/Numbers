@@ -1,3 +1,7 @@
+
+//TODO.. better comments
+//TODO.. better exception handling
+
 // Import the page's CSS. Webpack will know what to do with it.
 import "../stylesheets/app.css";
 
@@ -24,6 +28,14 @@ var account;
 var numbersInstance;
 var isHost = null;
 var isGameOver = false;
+
+// total num of handsover events to expect before game is over
+// the following three vars are used to postpone processing gameOver event if..
+// ..it arrive out of turn before all handsOver events have been received & processed
+const totalNumOfHands = 5;
+var isLastHandOver = false;
+var gameOverEvent = null;
+var gameOverErr = null;
 
 //events
 var gameOverWithWinEvent;
@@ -64,13 +76,13 @@ window.App = {
       });
     },
     //************************
-    //******* useAccountOne **********
+    //****** useAccountOne ***
     //************************
     useAccountOne: function() {
       account = accounts[1];
     },
     //************************
-    //******* createNewGame **********
+    //****** createNewGame ***
     //************************
     createNewGame: function() {
 
@@ -148,6 +160,7 @@ window.App = {
       App.setAllNumbers(); //first set all number cells with numbers
       App.setTableClicks(); //only then call this func as it'll will set clicks only for number cells with text
       App.registerEvents();
+      App.showMessage("Select card to start Game..");
     },
     //************************
     //******* registerPlayHand **********
@@ -184,6 +197,14 @@ window.App = {
       } else {
         console.error(error);
       }
+
+      //do not proceed if game overall
+      if(isGameOver)
+      {
+        console.log("Ignore handPlayedEvent since game is already over")
+        return;
+      }
+
       console.log("Hand Played - my account = ", account);
       //sometimes this event is coming 2 times for the same block, below chk to handle only once
       /*if (arrEventsFired.indexOf(eventObj.blockNumber) === -1) {
@@ -214,6 +235,7 @@ window.App = {
       var classString;
       var myHand;
       var theirHand;
+
       //sometimes this event is coming 2 times for the same block, below chk to handle only once
       if ((arrEventsFired.indexOf(eventObj.blockNumber) === -1) && !isGameOver) {
         console.log("PROCESSING - HandOver event");
@@ -261,15 +283,21 @@ window.App = {
       //$("#board")[0].children[0].children[event.data.x].children[event.data.y].innerHTML = "";
       //$("#board tr:nth-child(3) td:nth-child(" + (event.data.y + 1) + ")").removeClass("table-success").addClass("table-secondary");
       console.log($("#board"));
-      $("#board tr:nth-child(1) td:nth-child(" + theirHand + ")").addClass("rounded-circle", 2000, "easeOutBounce");
+      $("#board tr:nth-child(1) td:nth-child(" + theirHand + ")").addClass("rounded-circle", 500, "easeOutBounce");
 
 
-      setTimeout(function() {
+    //  setTimeout(function() {
         $("#board")[0].children[0].children[0].children[theirHand - 1].innerHTML = "";
         $("#board")[0].children[0].children[2].children[myHand - 1].innerHTML = "";
-        $("#board tr:nth-child(1) td:nth-child(" + theirHand + ")").removeClass("table-info", 1000, "easeOutBounce").addClass("table-secondary", 1000, "easeOutBounce"); //already added rounded circle class above
-        $("#board tr:nth-child(3) td:nth-child(" + myHand + ")").removeClass("table-success", 1000, "easeOutBounce").addClass("table-secondary", 1000, "easeOutBounce"); //this already has rounded circle
-      }, 1000);
+
+        //set click for all cells, now that innerText has been reset for teh hand just played
+        App.setTableClicks();
+        App.showMessage("Select card to Play..");
+        console.trace();
+
+        $("#board tr:nth-child(1) td:nth-child(" + theirHand + ")").removeClass("table-info", 200, "easeOutBounce").addClass("table-secondary", 200, "easeOutBounce"); //already added rounded circle class above
+        $("#board tr:nth-child(3) td:nth-child(" + myHand + ")").removeClass("table-success", 200, "easeOutBounce").addClass("table-secondary", 200, "easeOutBounce"); //this already has rounded circle
+      //}, 500);
 
 
       //$('#messages').prepend("<img src='https://media.giphy.com/media/xT1R9GYCO1eRlwxW24/giphy-downsized.gif' />");
@@ -277,28 +305,38 @@ window.App = {
       //update progress bar
       $("#scoreprogress").append("<div class=" + classString + " role='progressbar' style='width: 20%'>" + scoreString + "</div>");
 
-      //App.printBoard();
-      //set click for all cells
-      App.setTableClicks();
-
       //$(".in-game").hide();
       $(".game-start").show();
+
+      //store total hands over
+      isLastHandOver = (eventObj.args.handsCompleted) == (totalNumOfHands);
+      console.log("Hand num:" + eventObj.args.handsCompleted + "  Over? - " + isLastHandOver);
+
+      //now check if gameOver event was skipped waiting for last handsOver event
+      if(isLastHandOver && gameOverEvent!=null){
+        console.log("Special Case: Calling gameOver from handOver");
+        App.gameOver(null,gameOverEvent);
+      }
 
     } else {
       console.log("IGNORING - HandOver event since duplicate OR game over");
     }
   },
-  //************************
-  //******* gameOver **********
-  //************************
-  updateScoreEffects: function(){
-
-  },
+  
   //************************
   //******* gameOver **********
   //************************
   gameOver: function(err, eventObj) {
-    console.log("Game Over", eventObj);
+    console.log("Game Over called", eventObj);
+
+    if(!isLastHandOver){
+      //gameOver event received outOfTurn, lets save it for later
+      gameOverEvent = eventObj;
+      console.log("Skipping gameOver since all hands not processed yet");
+      return;
+    }
+
+    console.log("Continue to process gameOver since all hands have been processed");
     isGameOver = true;
 
     if (eventObj.event == "GameOverWithWin") {
@@ -406,9 +444,6 @@ window.App = {
       }
     }
     //}
-
-    //msgs
-    App.showMessage("Select card to Play..");
   },
 
   unsetTableClicks: function() {
