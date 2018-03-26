@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <!-- Required meta tags -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+  <!-- Bootstrap CSS -->
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+
+  <title>Distributed Numbers Game on Ethereum Blockchain</title>
+
+  <script src="https://code.jquery.com/jquery-3.3.1.js" integrity="sha256-2Kok7MbOyxpgUVvAk/HJ2jigOSYS2auK4Pfzbm7uH60=" crossorigin="anonymous"></script>
+  <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+    <script src="./app.js"></script>
+</head>
+
+<body>
+  <!-- ********************* Top Nav ********************* -->
+
+
+  <nav class="navbar navbar-dark bg-dark">
+    <div class="container-fluid">
+      <div class="navbar-header">
+        <a class="navbar-brand" href="#">
+        Lucky 5
+      </a>
+        <span class="navbar-text" style="margin-top:0px;margin-bottom:0px">Distributed Numbers Game on Ethereum Blockchain</span>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container">
+    <div class="row">
+      <div class="col-lg-12 text-center">
+
+        <div class="row">
+
+          <div class="col-lg-12 text-center">
+            <br>
+            <div class="row align-items-center">
+              <div class="col-lg-12 align-self-center">Score</div>
+            </div>
+            <div class="row align-items-center">
+              <!--  <div class="col-lg-1">Score:&nbsp;</div>-->
+              <div class="col-lg-1 display-4 text-info align-self-start" id="theirscore">0</div>
+              <div class="col-lg-10">
+                <div id="scoreprogress" class="progress">
+                  <!--
+                  <div class="table-info" role='progressbar' style="width: 20%">(2,3)</div>
+                  <div class="table-info" role="progressbar" style="width: 20%">(4,1)</div>
+                  <div class="table-success" role="progressbar" style="width: 20%">(1,2)</div>
+                -->
+                </div>
+              </div>
+              <div class="col-lg-1 display-4 text-success align-self-end" id="myscore">0</div>
+            </div>
+
+            <br>
+            <div class="row align-items-center">
+              <div id="leftarea" class="col-lg-3 align-self-center">
+                <div class="game-start">
+
+                  <button id="create" onclick="App.createNewGame()" class="btn btn-primary">Create Game</button> - or - <button id="join" onclick="App.joinGame()" class="btn btn-link">Join Game</button>
+                  <br /> One Game Costs: 0.005 Ether<br />
+                </div>
+
+                <div class="in-game hint small">
+                  Game-Address: <span id="game-address"></span><br />
+                  <div class="waiting-for-join">Opponent-Address: <span id="opponent-address"></span></div>
+                </div>
+
+              </div>
+              <div class="col-lg-6 align-self-center">
+                <table id="board">
+                  <tbody>
+                    <tr>
+                      <td class="table-info">1</td>
+                      <td class="table-info">2</td>
+                      <td class="table-info">3</td>
+                      <td class="table-info">4</td>
+                      <td class="table-info">5</td>
+                    </tr>
+
+                    <tr>
+                      <td colspan="5">
+                        <div id="messages"></div>
+                      </td>
+                    </tr>
+
+                    <tr>
+                      <td class="table-success">1</td>
+                      <td class="table-success">2</td>
+                      <td class="table-success">3</td>
+                      <td class="table-success">4</td>
+                      <td class="table-success">5</td>
+                    </tr>
+
+                  </tbody>
+                </table>
+              </div>
+              <div id="rightarea" class="col-lg-3 align-self-center">
+                Helpful Content
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+
+
+        <hr /><button class="btn btn-sm" onclick="App.useAccountOne()">Use Account #2</button>
+        <br />
+        <span class="hint small"><strong>Hint:</strong> open the browser developer console to view any errors and warnings.</span>
+      </div>
+    </div>
+  </div>
+</body>
+
+</html>
