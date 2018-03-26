@@ -71,6 +71,7 @@ window.App = {
 
         accounts = accs;
         account = accounts[0];
+        console.log("*** accounts:"+accounts);
         arrEventsFired = [];
 
       });
@@ -322,7 +323,7 @@ window.App = {
       console.log("IGNORING - HandOver event since duplicate OR game over");
     }
   },
-  
+
   //************************
   //******* gameOver **********
   //************************
