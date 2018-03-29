@@ -28306,16 +28306,16 @@ window.App = {
 
         if (eventObj.event == "HandOverWithWin") {
           if (eventObj.args.winner == account) {
-            App.showMessage("HAND won !");
+            App.showMessage("HAND won ! <br> Select card to play Next Hand..");
 
             classString = "table-success";
           } else {
-            App.showMessage("HAND lost");
+            App.showMessage("HAND lost <br> Select card to play Next Hand..");
             classString = "table-info";
 
           }
         } else if (eventObj.event == "HandOverWithDraw"){
-          App.showMessage("HAND draw");
+          App.showMessage("HAND draw <br> Select card to play Next Hand..");
           classString = "table-secondary";
           scoreString = "(" + eventObj.args.hand + "," + eventObj.args.hand + ")";
           myHand = eventObj.args.hand;
@@ -28346,7 +28346,7 @@ window.App = {
       //$("#board")[0].children[0].children[event.data.x].children[event.data.y].innerHTML = "";
       //$("#board tr:nth-child(3) td:nth-child(" + (event.data.y + 1) + ")").removeClass("table-success").addClass("table-secondary");
       console.log($("#board"));
-      $("#board tr:nth-child(1) td:nth-child(" + theirHand + ")").addClass("rounded-circle", 500, "easeOutBounce");
+      $("#board tr:nth-child(1) td:nth-child(" + theirHand + ")").addClass("rounded-circle", 1500, "easeOutBounce");
 
 
     //  setTimeout(function() {
@@ -28355,12 +28355,13 @@ window.App = {
 
         //set click for all cells, now that innerText has been reset for teh hand just played
         App.setTableClicks();
-        App.showMessage("Select card to Play..");
-        console.trace();
+
+        //console.trace();
 
         $("#board tr:nth-child(1) td:nth-child(" + theirHand + ")").removeClass("table-info", 200, "easeOutBounce").addClass("table-secondary", 200, "easeOutBounce"); //already added rounded circle class above
         $("#board tr:nth-child(3) td:nth-child(" + myHand + ")").removeClass("table-success", 200, "easeOutBounce").addClass("table-secondary", 200, "easeOutBounce"); //this already has rounded circle
       //}, 500);
+
 
 
       //$('#messages').prepend("<img src='https://media.giphy.com/media/xT1R9GYCO1eRlwxW24/giphy-downsized.gif' />");
@@ -28370,6 +28371,7 @@ window.App = {
 
       //$(".in-game").hide();
       $(".game-start").show();
+      //App.showMessage("Select card to Play..");
 
       //store total hands over
       isLastHandOver = (eventObj.args.handsCompleted) == (totalNumOfHands);
@@ -28462,7 +28464,7 @@ window.App = {
   handleError: function(error) {
     console.error(error);
     console.trace();
-    App.showMessage('Error - Ending game, check javascript console for more details');
+    App.showMessage('Error - Ending game, check javascript console for more details.</br> Make sure you have Metamask installed on your browser!');
     App.cleanup();
   },
   registerEvents: function() {
@@ -28523,7 +28525,7 @@ window.App = {
   },
 
   showMessage: function(msg) {
-    $("#messages").text(msg);
+    $("#messages").html(msg);
   }
 };
 
@@ -28534,7 +28536,7 @@ window.addEventListener('load', function() {
     // Use Mist/MetaMask's provider
     window.web3 = new __WEBPACK_IMPORTED_MODULE_1_web3___default.a(web3.currentProvider);
   } else {
-    console.warn("No web3 detected. Falling back to http://127.0.0.1:9545. You should remove this fallback when you deploy live, as it's inherently insecure. Consider switching to Metamask for development. More info here: http://truffleframework.com/tutorials/truffle-and-metamask");
+      console.warn("No web3 detected. Falling back to http://127.0.0.1:9545. You should remove this fallback when you deploy live, as it's inherently insecure. Consider switching to Metamask for development. More info here: http://truffleframework.com/tutorials/truffle-and-metamask");
     // fallback - use your fallback strategy (local node / hosted node + in-dapp id mgmt / fail)
     window.web3 = new __WEBPACK_IMPORTED_MODULE_1_web3___default.a(new __WEBPACK_IMPORTED_MODULE_1_web3___default.a.providers.HttpProvider("http://127.0.0.1:9545"));
   }
