@@ -47,6 +47,8 @@ var playerPlayedHandEvent;
 
 var arrEventsFired;
 
+var dev = getUrlParameter('dev');
+
 window.App = {
     //************************
     //******* start **********
@@ -64,7 +66,9 @@ window.App = {
           return;
         }
 
-        if (accs.length == 0) {
+        //chk if dev mode
+
+        if ((dev!='true') && (accs.length == 0)) {
           App.showMessage("Couldn't get any accounts! Make sure your Ethereum client is configured correctly.");
           return;
         }
@@ -72,6 +76,7 @@ window.App = {
         accounts = accs;
         account = accounts[0];
         console.log("*** accounts:"+accounts);
+        console.log("*** account being used:"+account);
         arrEventsFired = [];
 
       });
@@ -481,3 +486,10 @@ window.addEventListener('load', function() {
 
   App.start();
 });
+
+function getUrlParameter(name) {
+    name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
+    var regex = new RegExp('[\\?&]' + name + '=([^&#]*)');
+    var results = regex.exec(location.search);
+    return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
+};
