@@ -1,4 +1,4 @@
-pragma solidity ^0.4.19;
+pragma solidity >=0.4.25 <0.6.0;
 
 //TODO.. better comments
 //TODO.. better exception handling
@@ -14,7 +14,7 @@ contract Numbers {
     //public user data that can be sent as status
     struct Player {
         bool[5] hands;
-        address addr;
+        address payable addr;
         uint balanceToWithdraw;
         uint8 wins;
     }
@@ -41,7 +41,7 @@ contract Numbers {
     event HandOverWithDraw(uint8 hand,uint8 hostWins,uint8 guestWins, uint handsCompleted);
     event PayoutSuccess(address receiver, uint amountInWei);
 
-    function Numbers() public payable {
+    constructor() public payable {
         hostPlayer.addr = msg.sender;
         hostPlayerAddr = msg.sender;
         require(msg.value == gameCost);
@@ -57,7 +57,7 @@ contract Numbers {
         require(msg.value == gameCost);
 
         guestPlayer.addr = msg.sender;
-         PlayerJoined(guestPlayer.addr);
+        emit PlayerJoined(guestPlayer.addr);
 
         gameValidUntil = now + timeToReact;
 
@@ -65,7 +65,7 @@ contract Numbers {
 
     //TODO make this function public after testing latest changes to update 'hands' array..
     //.. only after hand is over are working fine
-    function getPlayStatus() private view returns(bool[5],uint8,bool[5],uint8) {
+    function getPlayStatus() private view returns(bool[5] memory,uint8,bool[5] memory,uint8) {
         return (hostPlayer.hands,hostPlayer.wins,guestPlayer.hands,guestPlayer.wins);
     }
 
@@ -76,7 +76,7 @@ contract Numbers {
         require(gameActive);
         require(number <= maxNumber);
 
-        Player currentPlayer;
+        Player memory currentPlayer;
         if(msg.sender == hostPlayer.addr){
             //first.. check that the user is not taking double turn
             require(hostPlayer_currentHandPlayed == 0);//not played already for this hand
@@ -93,7 +93,7 @@ contract Numbers {
         // now chk number not used already
         require(currentPlayer.hands[number-1]==false);
 
-        PlayerPlayedHand(currentPlayer.addr);
+        emit PlayerPlayedHand(currentPlayer.addr);
 
        // board[x][y] = msg.sender;
        // movesCounter++;
@@ -110,21 +110,21 @@ contract Numbers {
 
     function determineHandWinner() private{
 
-        //increement hands movesCounter
+        //increment hands movesCounter
         ++handsCompleted;
 
         if(hostPlayer_currentHandPlayed > guestPlayer_currentHandPlayed) {
             ++hostPlayer.wins;
-            HandOverWithWin(hostPlayer.addr, hostPlayer_currentHandPlayed, guestPlayer_currentHandPlayed,
+            emit HandOverWithWin(hostPlayer.addr, hostPlayer_currentHandPlayed, guestPlayer_currentHandPlayed,
               hostPlayer.wins, guestPlayer.wins, handsCompleted);
         }
         else if(hostPlayer_currentHandPlayed < guestPlayer_currentHandPlayed){
             ++guestPlayer.wins;
-            HandOverWithWin(guestPlayer.addr, hostPlayer_currentHandPlayed, guestPlayer_currentHandPlayed,
+            emit HandOverWithWin(guestPlayer.addr, hostPlayer_currentHandPlayed, guestPlayer_currentHandPlayed,
                hostPlayer.wins, guestPlayer.wins, handsCompleted);
         }
         else{
-             HandOverWithDraw(hostPlayer_currentHandPlayed, hostPlayer.wins, guestPlayer.wins, handsCompleted);//draw
+             emit HandOverWithDraw(hostPlayer_currentHandPlayed, hostPlayer.wins, guestPlayer.wins, handsCompleted);//draw
         }
 
         //reset current hand
@@ -149,7 +149,7 @@ contract Numbers {
 
     }
 
-    function allChancesTaken(bool[5] hand) private pure returns(bool){
+    function allChancesTaken(bool[5] memory hand) private pure returns(bool){
         bool taken = true;
          for(uint i = 0; i < 5 ; i++) {
              if(hand[i]==false){
@@ -160,9 +160,9 @@ contract Numbers {
          return taken;
     }
 
-    function setWinner(address player) private {
+    function setWinner(address payable player) private {
         gameActive = false;
-        uint balanceToPayOut = this.balance;
+        uint balanceToPayOut = address(this).balance;
 
         //transfer money to the winner
         if(player.send(balanceToPayOut) != true) {
@@ -172,11 +172,11 @@ contract Numbers {
                 guestPlayer.balanceToWithdraw = balanceToPayOut;
             }
         } else {
-            PayoutSuccess(player, balanceToPayOut);
+            emit PayoutSuccess(player, balanceToPayOut);
         }
 
         //emit an event
-        GameOverWithWin(player, hostPlayer.wins, guestPlayer.wins, handsCompleted);
+        emit GameOverWithWin(player, hostPlayer.wins, guestPlayer.wins, handsCompleted);
 
     }
 
@@ -188,32 +188,32 @@ contract Numbers {
             hostPlayer.balanceToWithdraw = 0;
             hostPlayer.addr.transfer(balanceToTransfer);
 
-            PayoutSuccess(hostPlayer.addr, balanceToTransfer);
+            emit PayoutSuccess(hostPlayer.addr, balanceToTransfer);
         } else {
 
             require(guestPlayer.balanceToWithdraw > 0);
              balanceToTransfer = guestPlayer.balanceToWithdraw;
             guestPlayer.balanceToWithdraw = 0;
             guestPlayer.addr.transfer(balanceToTransfer);
-             PayoutSuccess(guestPlayer.addr, balanceToTransfer);
+             emit PayoutSuccess(guestPlayer.addr, balanceToTransfer);
         }
     }
 
     function setDraw() private {
         gameActive = false;
-         GameOverWithDraw(hostPlayer.wins,guestPlayer.wins,handsCompleted);
+         emit GameOverWithDraw(hostPlayer.wins,guestPlayer.wins,handsCompleted);
 
-        uint balanceToPayOut = this.balance/2;
+        uint balanceToPayOut = address(this).balance/2;
 
         if(hostPlayer.addr.send(balanceToPayOut) == false) {
             hostPlayer.balanceToWithdraw += balanceToPayOut;
         } else {
-             PayoutSuccess(hostPlayer.addr, balanceToPayOut);
+             emit PayoutSuccess(hostPlayer.addr, balanceToPayOut);
         }
         if(guestPlayer.addr.send(balanceToPayOut) == false) {
             guestPlayer.balanceToWithdraw += balanceToPayOut;
         } else {
-             PayoutSuccess(guestPlayer.addr, balanceToPayOut);
+             emit PayoutSuccess(guestPlayer.addr, balanceToPayOut);
         }
 
     }
