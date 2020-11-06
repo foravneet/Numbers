@@ -5,6 +5,8 @@ build/
 node_modules/
 test/
 *.txt
+*.old
+*.back
 
 
 # Compiled source #
