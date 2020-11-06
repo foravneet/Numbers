@@ -4,7 +4,7 @@ pragma solidity >=0.4.25 <0.6.0;
 //TODO.. better exception handling
 
 contract Numbers {
-    uint constant public gameCost = 0.005 ether;
+    uint constant public gameCost = 0.001 ether;
     bool gameActive;
     bool newHandInProgress = false;
 
@@ -44,9 +44,13 @@ contract Numbers {
     constructor() public payable {
         hostPlayer.addr = msg.sender;
         hostPlayerAddr = msg.sender;
-        require(msg.value == gameCost);
+        //require(msg.value == gameCost);
         gameValidUntil = now+timeToReact;
     }
+
+    function hello() public pure returns (string memory) {
+        return 'helloAvneet';
+      }
 
     function joinGame() public payable {
 

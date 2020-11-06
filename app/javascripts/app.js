@@ -59,8 +59,20 @@ window.App = {
       // Bootstrap the MetaCoin abstraction for Use.
       Numbers.setProvider(web3.currentProvider);
 
+
       // Get the initial account balance so it can be displayed.
       web3.eth.getAccounts(function(err, accs) {
+        console.log("*** currentProvider:");
+        console.log(web3.currentProvider);
+
+        console.log("*** accs:");
+        console.log(accs);
+
+        console.log("*** err:");
+        console.log(err);
+
+        console.log("*** location:"+location);
+
         if (err != null) {
           App.showMessage("There was an error fetching your accounts.");
           return;
@@ -94,7 +106,7 @@ window.App = {
 
       Numbers.new({
         from: account,
-        value: web3.toWei(0.005, "ether"),
+        value: web3.toWei(0.001, "ether"),
         gas: 3000000
       }).then(instance => {
         numbersInstance = instance;
@@ -139,7 +151,7 @@ window.App = {
 
           return numbersInstance.joinGame({
             from: account,
-            value: web3.toWei(0.005, "ether"),
+            value: web3.toWei(0.001, "ether"),
             gas: 3000000
           });
         }).then(txResult => {
@@ -472,10 +484,11 @@ window.App = {
   }
 };
 
-window.addEventListener('load', function() {
+window.addEventListener('load', async () => {
+  /*
   // Checking if Web3 has been injected by the browser (Mist/MetaMask)
   if (typeof web3 !== 'undefined') {
-    console.warn("Using web3 detected from external source. If you find that your accounts don't appear or you have 0 MetaCoin, ensure you've configured that source properly. If using MetaMask, see the following link. Feel free to delete this warning. :) http://truffleframework.com/tutorials/truffle-and-metamask")
+    console.warn("Using web3 detected from external source. If you find that your accounts don't appear, ensure you've configured that source properly.")
     // Use Mist/MetaMask's provider
     window.web3 = new Web3(web3.currentProvider);
   } else {
@@ -483,6 +496,38 @@ window.addEventListener('load', function() {
     // fallback - use your fallback strategy (local node / hosted node + in-dapp id mgmt / fail)
     window.web3 = new Web3(new Web3.providers.HttpProvider("http://127.0.0.1:9545"));
   }
+*/
+
+  // new code - start here
+  // Modern dapp browsers...
+     if (window.ethereum) {
+         window.web3 = new Web3(ethereum);
+         try {
+             // Request account access if needed
+             await ethereum.enable();
+
+             //replace above with this
+             //a10 = await web3.eth.requestAccounts();
+             //console.log(a10);
+             console.log("** User gave permission for account access..");
+         } catch (error) {
+             // User denied account access...
+             console.error("** User denied account access...");
+         }
+     }
+     // Legacy dapp browsers...
+     else if (window.web3) {
+         window.web3 = new Web3(web3.currentProvider);
+         // Acccounts always exposed in this case
+     }
+     // Non-dapp browsers...
+     else {
+         console.log('Non-Ethereum browser detected. You should consider trying MetaMask!');
+     }
+     // new code - end here
+
+
+
 
   App.start();
 });

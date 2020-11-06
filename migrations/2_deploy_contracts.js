@@ -3,5 +3,5 @@ var Numbers = artifacts.require("./Numbers.sol");
 
 module.exports = function(deployer) {
   //deployer.deploy(TicTacToe);
-  //deployer.deploy(Numbers);
+  deployer.deploy(Numbers);
 };
