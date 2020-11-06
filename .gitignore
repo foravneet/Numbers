@@ -1,9 +1,10 @@
 # Mine
 tictactoe/
 backup/
-# build/
+build/
 node_modules/
 test/
+*.txt
 
 
 # Compiled source #
