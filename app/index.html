@@ -64,11 +64,16 @@
 
                   <button id="create" onclick="App.createNewGame()" class="btn btn-primary">Create Game</button> - or - <button id="join" onclick="App.joinGame()" class="btn btn-link">Join Game</button>
                   <br /> One Game Costs: 0.001 Ether<br />
+
                 </div>
 
                 <div class="in-game hint small">
+                  My-Address: <span id="my-address"></span><br />
                   Game-Address: <span id="game-address"></span><br />
-                  <div class="waiting-for-join">Opponent-Address: <span id="opponent-address"></span></div>
+
+                  <div class="waiting-for-join">
+                    Opponent-Address: <span id="opponent-address">[Waiting for someone to join your game]</span>
+                  </div>
                 </div>
 
               </div>
@@ -108,9 +113,6 @@
 
         </div>
 
-
-
-        <hr /><button class="btn btn-sm" onclick="App.useAccountOne()">Use Account #2</button>
         <br />
         <span class="hint small"><strong>Hint:</strong> open the browser developer console to view any errors and warnings.</span>
       </div>

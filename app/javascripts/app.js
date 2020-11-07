@@ -89,15 +89,10 @@ window.App = {
         account = accounts[0];
         console.log("*** accounts:"+accounts);
         console.log("*** account being used:"+account);
+        $("#my-address").text(account);
         arrEventsFired = [];
 
       });
-    },
-    //************************
-    //****** useAccountOne ***
-    //************************
-    useAccountOne: function() {
-      account = accounts[1];
     },
     //************************
     //****** createNewGame ***
@@ -114,7 +109,7 @@ window.App = {
         isHost = true; //set me as host
 
         $(".in-game").show();
-        $(".waiting-for-join").hide();
+        //$(".waiting-for-join").hide();
         $(".game-start").hide();
         $("#game-address").text(instance.address);
         $("#waiting").show();
@@ -127,7 +122,7 @@ window.App = {
           } else {
             console.error(error);
           }
-          $(".waiting-for-join").show();
+          //$(".waiting-for-join").show();
           $("#opponent-address").text(eventObj.args.player);
           $("#your-turn").hide();
           playerJoinedEvent.stopWatching();
@@ -143,19 +138,17 @@ window.App = {
     //************************
     joinGame: function() {
       var gameAddress = prompt("Address of the Game");
+      console.log("gameAddress="+gameAddress);
       if (gameAddress != null) {
         Numbers.at(gameAddress).then(instance => {
           numbersInstance = instance;
-
           App.registerEvents();
-
           return numbersInstance.joinGame({
             from: account,
             value: web3.toWei(0.001, "ether"),
             gas: 3000000
           });
         }).then(txResult => {
-
           isHost = false; //set me as guest
 
           $(".in-game").show();
